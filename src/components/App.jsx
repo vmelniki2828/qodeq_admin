@@ -1,16 +1,20 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from 'contexts/ThemeContext';
+import { LoginPage } from 'pages/LoginPage';
+import { ToolsWorkflowPage } from 'pages/ToolsWorkflowPage';
+import { LocalAssistantsPage } from 'pages/LocalAssistantsPage';
+
 export const App = () => {
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
-    </div>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/tools-workflow" element={<ToolsWorkflowPage />} />
+          <Route path="/local-assistants" element={<LocalAssistantsPage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
