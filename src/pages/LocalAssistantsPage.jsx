@@ -81,6 +81,8 @@ const RightContent = styled.div`
 `;
 
 const SettingSection = styled.div`
+  display: flex;
+  gap: 24px;
   margin-bottom: 24px;
 `;
 
@@ -88,7 +90,202 @@ const SettingLabel = styled.div`
   font-size: 14px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.primary};
+  min-width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const EditIconButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.secondary};
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) =>
+      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.08)'};
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+`;
+
+const ModalHeader = styled.div`
+  padding: 20px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.primary};
+`;
+
+const CloseButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.secondary};
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.08)'};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 14px;
+  outline: none;
   margin-bottom: 12px;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
+`;
+
+const ModalBody = styled.div`
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 4px;
+
+    &:hover {
+      background: ${({ theme }) => theme.colors.secondary};
+    }
+  }
+`;
+
+const ModalToolsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6B6B' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  option {
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const SettingContent = styled.div`
+  flex: 1;
+`;
+
+const ToolsListContainer = styled.div`
+  max-height: 100px;
+  overflow-y: auto;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  padding: 12px;
+  background-color: ${({ theme }) => theme.colors.background};
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 4px;
+
+    &:hover {
+      background: ${({ theme }) => theme.colors.secondary};
+    }
+  }
 `;
 
 const ToolsList = styled.div`
@@ -101,7 +298,7 @@ const ToolItem = styled.label`
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px;
+  padding: 0;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -257,6 +454,9 @@ export const LocalAssistantsPage = () => {
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [selectedTools, setSelectedTools] = useState(new Set());
   const [isResizing, setIsResizing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
   const containerRef = useRef(null);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
@@ -306,6 +506,21 @@ export const LocalAssistantsPage = () => {
     startWidthRef.current = leftWidth;
   };
 
+  const filteredTools = toolsList.filter((tool) => {
+    const toolKey = `${tool.name}(${tool.id})`;
+    return toolKey.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const handleToolToggle = (toolKey) => {
+    const newSelected = new Set(selectedTools);
+    if (newSelected.has(toolKey)) {
+      newSelected.delete(toolKey);
+    } else {
+      newSelected.add(toolKey);
+    }
+    setSelectedTools(newSelected);
+  };
+
   return (
     <Layout>
       <PageContainer ref={containerRef}>
@@ -343,35 +558,104 @@ export const LocalAssistantsPage = () => {
           </EditButton>
           <RightContent>
             <SettingSection>
-              <SettingLabel theme={theme}>Tools</SettingLabel>
-              <ToolsList>
-                {toolsList.map((tool, index) => {
+              <SettingLabel theme={theme}>
+                Tools
+                <EditIconButton
+                  theme={theme}
+                  onClick={() => setIsModalOpen(true)}
+                  title="Редактировать инструменты"
+                >
+                  <HiPencil size={14} />
+                </EditIconButton>
+              </SettingLabel>
+              <SettingContent>
+                <ToolsListContainer theme={theme}>
+                  <ToolsList>
+                    {toolsList.map((tool, index) => {
+                      const toolKey = `${tool.name}(${tool.id})`;
+                      return (
+                        <ToolItem key={`${tool.id}-${index}`} theme={theme}>
+                          <Checkbox
+                            type="checkbox"
+                            checked={selectedTools.has(toolKey)}
+                            onChange={(e) => {
+                              const newSelected = new Set(selectedTools);
+                              if (e.target.checked) {
+                                newSelected.add(toolKey);
+                              } else {
+                                newSelected.delete(toolKey);
+                              }
+                              setSelectedTools(newSelected);
+                            }}
+                            theme={theme}
+                          />
+                          <ToolName>{toolKey}</ToolName>
+                        </ToolItem>
+                      );
+                    })}
+                  </ToolsList>
+                </ToolsListContainer>
+              </SettingContent>
+            </SettingSection>
+
+            <SettingSection>
+              <SettingLabel theme={theme}>
+                Model
+              </SettingLabel>
+              <SettingContent>
+                <Select
+                  theme={theme}
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                >
+                  <option value="">Выберите модель</option>
+                  <option value="model1">Model 1</option>
+                  <option value="model2">Model 2</option>
+                  <option value="model3">Model 3</option>
+                </Select>
+              </SettingContent>
+            </SettingSection>
+          </RightContent>
+        </RightPanel>
+      </PageContainer>
+
+      {isModalOpen && (
+        <ModalOverlay onClick={() => setIsModalOpen(false)}>
+          <ModalContent theme={theme} onClick={(e) => e.stopPropagation()}>
+            <ModalHeader theme={theme}>
+              <ModalTitle theme={theme}>Выберите инструменты</ModalTitle>
+              <CloseButton theme={theme} onClick={() => setIsModalOpen(false)}>
+                ×
+              </CloseButton>
+            </ModalHeader>
+            <ModalBody theme={theme}>
+              <SearchInput
+                theme={theme}
+                type="text"
+                placeholder="Поиск инструментов..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <ModalToolsList>
+                {filteredTools.map((tool, index) => {
                   const toolKey = `${tool.name}(${tool.id})`;
                   return (
                     <ToolItem key={`${tool.id}-${index}`} theme={theme}>
                       <Checkbox
                         type="checkbox"
                         checked={selectedTools.has(toolKey)}
-                        onChange={(e) => {
-                          const newSelected = new Set(selectedTools);
-                          if (e.target.checked) {
-                            newSelected.add(toolKey);
-                          } else {
-                            newSelected.delete(toolKey);
-                          }
-                          setSelectedTools(newSelected);
-                        }}
+                        onChange={() => handleToolToggle(toolKey)}
                         theme={theme}
                       />
                       <ToolName>{toolKey}</ToolName>
                     </ToolItem>
                   );
                 })}
-              </ToolsList>
-            </SettingSection>
-          </RightContent>
-        </RightPanel>
-      </PageContainer>
+              </ModalToolsList>
+            </ModalBody>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Layout>
   );
 };
