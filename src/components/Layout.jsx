@@ -48,6 +48,7 @@ export const Layout = ({ children }) => {
       <ContentWrapper>
         <Sidebar />
         <Main theme={theme}>
+          
           <ContentArea theme={theme}>
             {children}
           </ContentArea>
