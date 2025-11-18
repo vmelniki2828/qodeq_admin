@@ -70,34 +70,6 @@ const FilterLabel = styled.label`
   white-space: nowrap;
 `;
 
-const ProjectSelect = styled.select`
-  padding: 8px 32px 8px 12px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.primary};
-  font-size: 13px;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6B6B' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 12px;
-  box-sizing: border-box;
-  min-width: 200px;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  option {
-    background-color: ${({ theme }) => theme.colors.background};
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
 const SearchInput = styled.input`
   flex: 1;
   padding: 8px 12px;

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 import { Layout } from 'components/Layout';
-import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash } from 'react-icons/hi2';
+import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText } from 'react-icons/hi2';
 import { Notify, Confirm } from 'notiflix/build/notiflix-aio';
 
 const PageContainer = styled.div`
@@ -260,12 +260,73 @@ const MessageRole = styled.div`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.secondary};
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 `;
 
 const MessageText = styled.div`
   font-size: 14px;
   color: ${({ theme }) => theme.colors.primary};
   line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+`;
+
+const ChunksButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.secondary};
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.08)'};
+  }
+`;
+
+const ChunksContainer = styled.div`
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+const ChunkBlock = styled.div`
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) =>
+    theme.colors.surface === '#F9FAFB' ? '#F0F1F3' : theme.colors.surface};
+  flex: 1;
+  min-width: 250px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const ChunkTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-bottom: 8px;
+`;
+
+const ChunkText = styled.div`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.primary};
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 `;
 
 const InputContainer = styled.div`
@@ -915,10 +976,8 @@ export const LocalAssistantsPage = () => {
     e.stopPropagation();
     const agent = agents.find((a) => a.id === agentId);
     
-    const isDark = theme.colors.primary === '#FFFFFF';
     const backgroundColor = theme.colors.surface === '#F9FAFB' ? '#F0F1F3' : theme.colors.surface;
     const textColor = theme.colors.primary;
-    const borderColor = theme.colors.border;
     const buttonBg = theme.colors.primary;
     const buttonText = theme.colors.background;
     const cancelButtonBg = theme.colors.background;
@@ -955,7 +1014,6 @@ export const LocalAssistantsPage = () => {
         fontFamily: 'inherit',
         titleFontSize: '18px',
         messageFontSize: '14px',
-        borderRadius: '12px',
         cssAnimationStyle: 'zoom',
       }
     );
@@ -975,6 +1033,8 @@ export const LocalAssistantsPage = () => {
   const [editLeftWidth, setEditLeftWidth] = useState(50);
   const [isEditResizing, setIsEditResizing] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [showChunksForMessage, setShowChunksForMessage] = useState(null);
+  const [isPlaygroundChunksModalOpen, setIsPlaygroundChunksModalOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const containerRef = useRef(null);
   const editContainerRef = useRef(null);
@@ -1269,11 +1329,31 @@ export const LocalAssistantsPage = () => {
       const assistantMessage = {
         id: Date.now() + 1,
         role: 'assistant',
-        text: 'Это ответ ассистента на ваше сообщение.',
+        text: 'Для прохождения верификации необходимо предоставить копии документов, удостоверяющих личность. Обычно это паспорт или водительское удостоверение. Также может потребоваться подтверждение адреса проживания, например, счет за коммунальные услуги.\n\nВам необходимо загрузить сканы или фотографии документов в личном кабинете на сайте AUFcasino. Убедитесь, что все данные на документах четко видны.\n\nЕсли у Вас возникнут сложности с загрузкой документов, пожалуйста, сообщите мне, и я постараюсь Вам помочь. 🙏',
+        hasChunksButton: true,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     }, 1000);
   };
+
+  const handleShowChunks = (messageId) => {
+    setShowChunksForMessage((prev) => (prev === messageId ? null : messageId));
+  };
+
+  const handleOpenChunksModal = () => {
+    setIsPlaygroundChunksModalOpen(true);
+  };
+
+  const chunksData = [
+    {
+      title: 'Верификация криптовалюты:',
+      text: '- На данный момент при пополнении счёта с помощью криптовалюты верификация кошелька не требуется.\n- Если такая необходимость возникнет в будущем, мы обязательно уведомим вас дополнительно.',
+    },
+    {
+      title: 'Верификация виртуальной карты альфабанк:',
+      text: 'СИНОНИМЫ: виртуальные карты, как верифицировать виртуальную карту альфа банка?\n- Если клиент хочет верифицировать виртуальную карту Альфа банка необходимо предоставить следующий ответ "Вам необходимо загрузить подтверждение владения картой, содержащее ваши ФИО и последние 4 цифры номера карты. 💳 Для того, чтобы получить нужный документ зайдите, пожалуйста, в мобильное приложение Альфа-банка:\n1. В приложении банка на главной странице откройте раздел «Выписка»;\n2. Выберите любой вариант из предложенных: "Реквизиты счета", "Справка об остатке и движении средств", "Справка о наличии счетов";\n4. Чтобы сформировать выписку, нажмите на кнопку «Получить выписку». Выберите формат pdf и дополнительные параметры.\nЕсли у вас возникли проблемы на одном из пунктов, пожалуйста, обратитесь в поддержку вашего банка и запросите нужный документ. 🙏 "',
+    },
+  ];
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -2423,23 +2503,39 @@ export const LocalAssistantsPage = () => {
                    <PlaygroundHeader theme={theme}>
                      <PlaygroundTitle theme={theme}>Playground</PlaygroundTitle>
                    </PlaygroundHeader>
-                   <MessagesContainer theme={theme}>
-                     {messages.length === 0 ? (
-                       <Message theme={theme}>
-                         <MessageText theme={theme}>
-                           Начните диалог с ассистентом, отправив сообщение.
-                         </MessageText>
-                       </Message>
-                     ) : (
-                       messages.map((message) => (
+                  <MessagesContainer theme={theme}>
+                    {messages.length > 0 && messages.map((message) => (
                          <Message key={message.id} $isUser={message.role === 'user'} theme={theme}>
                            <MessageRole theme={theme}>
                              {message.role === 'user' ? 'Вы' : 'Ассистент'}
+                             {message.hasChunksButton && (
+                               <>
+                                 <ChunksButton theme={theme} onClick={() => handleShowChunks(message.id)}>
+                                   <HiDocumentText size={14} />
+                                   Knowledgebase
+                                 </ChunksButton>
+                                 <ChunksButton theme={theme} onClick={handleOpenChunksModal}>
+                                   <HiPencil size={14} />
+                                   Chunks
+                                 </ChunksButton>
+                               </>
+                             )}
                            </MessageRole>
-                           <MessageText theme={theme}>{message.text}</MessageText>
+                           {message.hasChunksButton && showChunksForMessage === message.id && (
+                             <ChunksContainer theme={theme}>
+                               {chunksData.map((chunk, index) => (
+                                 <ChunkBlock key={index} theme={theme}>
+                                   <ChunkTitle theme={theme}>{chunk.title}</ChunkTitle>
+                                   <ChunkText theme={theme}>{chunk.text}</ChunkText>
+                                 </ChunkBlock>
+                               ))}
+                             </ChunksContainer>
+                           )}
+                           <MessageText theme={theme}>
+                             {message.text}
+                           </MessageText>
                          </Message>
-                       ))
-                     )}
+                       ))}
                      <div ref={messagesEndRef} />
                    </MessagesContainer>
                    <InputContainer theme={theme}>
@@ -2657,6 +2753,21 @@ export const LocalAssistantsPage = () => {
                 onChange={(e) => setToolDefinition(e.target.value)}
                 placeholder="Введите tool definition..."
               />
+            </ModalBody>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+      {isPlaygroundChunksModalOpen && (
+        <ModalOverlay onClick={() => setIsPlaygroundChunksModalOpen(false)}>
+          <ModalContent theme={theme} onClick={(e) => e.stopPropagation()}>
+            <ModalHeader theme={theme}>
+              <ModalTitle theme={theme}>Chunks</ModalTitle>
+              <CloseButton theme={theme} onClick={() => setIsPlaygroundChunksModalOpen(false)}>
+                ×
+              </CloseButton>
+            </ModalHeader>
+            <ModalBody theme={theme}>
+              {/* Здесь будет содержимое модального окна */}
             </ModalBody>
           </ModalContent>
         </ModalOverlay>
