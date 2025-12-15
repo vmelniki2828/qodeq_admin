@@ -313,21 +313,6 @@ const ChunkBlock = styled.div`
   flex: 1;
   min-width: 250px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-`;
-
-const ChunkIndexIndicator = styled.div`
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.primary};
-  opacity: 0.7;
-  padding: 4px 8px;
-  background-color: ${({ theme }) =>
-    theme.colors.surface === '#F9FAFB' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.1)'};
-  border-radius: 4px;
 `;
 
 const ChunkNavigationButton = styled.button`
@@ -983,6 +968,7 @@ export const LocalAssistantsPage = () => {
   const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
   const [isAttributesModalOpen, setIsAttributesModalOpen] = useState(false);
   const [isInstructionModalOpen, setIsInstructionModalOpen] = useState(false);
+  const [isRewriteInstructionModalOpen, setIsRewriteInstructionModalOpen] = useState(false);
   const [isToolCallingModalOpen, setIsToolCallingModalOpen] = useState(false);
   const [isToolDefinitionModalOpen, setIsToolDefinitionModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1060,8 +1046,10 @@ export const LocalAssistantsPage = () => {
     );
   };
   const [instruction, setInstruction] = useState('');
+  const [rewriteInstruction, setRewriteInstruction] = useState('');
   const [toolCalling, setToolCalling] = useState('');
   const [toolDefinition, setToolDefinition] = useState('');
+  const [useRewrite, setUseRewrite] = useState(false);
   const [temperature, setTemperature] = useState(0);
   const [topP, setTopP] = useState(0);
   const [maxTokens, setMaxTokens] = useState(0);
@@ -1650,6 +1638,42 @@ export const LocalAssistantsPage = () => {
 
             <SettingSection>
               <SettingLabel theme={theme}>
+                Rewrite Instruction
+                <EditIconButton
+                  theme={theme}
+                  onClick={() => setIsRewriteInstructionModalOpen(true)}
+                  title="Редактировать rewrite instruction"
+                >
+                  <HiPencil size={14} />
+                </EditIconButton>
+              </SettingLabel>
+              <SettingContent>
+                <TextInput
+                  theme={theme}
+                  type="text"
+                  value={rewriteInstruction}
+                  onChange={(e) => setRewriteInstruction(e.target.value)}
+                  placeholder="Введите rewrite instruction..."
+                />
+              </SettingContent>
+            </SettingSection>
+
+            <SettingSection>
+              <SettingLabel theme={theme}>
+                Use Rewrite
+              </SettingLabel>
+              <SettingContent>
+                <Checkbox
+                  type="checkbox"
+                  checked={useRewrite}
+                  onChange={(e) => setUseRewrite(e.target.checked)}
+                  theme={theme}
+                />
+              </SettingContent>
+            </SettingSection>
+
+            <SettingSection>
+              <SettingLabel theme={theme}>
                 Temperature
               </SettingLabel>
               <SettingContent>
@@ -2158,6 +2182,42 @@ export const LocalAssistantsPage = () => {
 
                      <SettingSection>
                        <SettingLabel theme={theme}>
+                         Rewrite Instruction
+                         <EditIconButton
+                           theme={theme}
+                           onClick={() => setIsRewriteInstructionModalOpen(true)}
+                           title="Редактировать rewrite instruction"
+                         >
+                           <HiPencil size={14} />
+                         </EditIconButton>
+                       </SettingLabel>
+                       <SettingContent>
+                         <TextInput
+                           theme={theme}
+                           type="text"
+                           value={rewriteInstruction}
+                           onChange={(e) => setRewriteInstruction(e.target.value)}
+                           placeholder="Введите rewrite instruction..."
+                         />
+                       </SettingContent>
+                     </SettingSection>
+
+                     <SettingSection>
+                       <SettingLabel theme={theme}>
+                         Use Rewrite
+                       </SettingLabel>
+                       <SettingContent>
+                         <Checkbox
+                           type="checkbox"
+                           checked={useRewrite}
+                           onChange={(e) => setUseRewrite(e.target.checked)}
+                           theme={theme}
+                         />
+                       </SettingContent>
+                     </SettingSection>
+
+                     <SettingSection>
+                       <SettingLabel theme={theme}>
                          Temperature
                        </SettingLabel>
                        <SettingContent>
@@ -2510,9 +2570,6 @@ export const LocalAssistantsPage = () => {
                                  <HiChevronLeft size={18} />
                                </ChunkNavigationButton>
                                <ChunkBlock theme={theme}>
-                                 <ChunkIndexIndicator theme={theme}>
-                                   {currentChunkIndex + 1}/{chunksLimit > 0 ? chunksLimit : chunksData.length}
-                                 </ChunkIndexIndicator>
                                  <ChunkTitle theme={theme}>
                                    {chunksData[currentChunkIndex]?.title}
                                  </ChunkTitle>
@@ -2687,6 +2744,27 @@ export const LocalAssistantsPage = () => {
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
                 placeholder="Введите инструкцию..."
+              />
+            </ModalBody>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {isRewriteInstructionModalOpen && (
+        <ModalOverlay onClick={() => setIsRewriteInstructionModalOpen(false)}>
+          <ModalContent theme={theme} onClick={(e) => e.stopPropagation()}>
+            <ModalHeader theme={theme}>
+              <ModalTitle theme={theme}>Rewrite Instruction</ModalTitle>
+              <CloseButton theme={theme} onClick={() => setIsRewriteInstructionModalOpen(false)}>
+                ×
+              </CloseButton>
+            </ModalHeader>
+            <ModalBody theme={theme}>
+              <ModalTextArea
+                theme={theme}
+                value={rewriteInstruction}
+                onChange={(e) => setRewriteInstruction(e.target.value)}
+                placeholder="Введите rewrite instruction..."
               />
             </ModalBody>
           </ModalContent>
