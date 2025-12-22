@@ -253,7 +253,7 @@ const SettingsPanel = styled.div`
   right: 0;
   width: 400px;
   height: 100%;
-  background-color: #1A1A1A;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-left: 1px solid ${({ theme }) => theme.colors.border};
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
@@ -268,7 +268,7 @@ const SettingsPanel = styled.div`
   }
 
   &::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.colors.background};
+    background: ${({ theme }) => theme.colors.surface};
     border-radius: 4px;
   }
 
@@ -287,7 +287,7 @@ const SettingsHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   flex-shrink: 0;
 `;
 
@@ -295,7 +295,7 @@ const SettingsTitle = styled.h3`
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #ECECEC;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const CloseButton = styled.button`
@@ -307,14 +307,15 @@ const CloseButton = styled.button`
   padding: 0;
   border: none;
   background: transparent;
-  color: #ACACAC;
+  color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    color: #ECECEC;
+    background-color: ${({ theme }) =>
+      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.08)'};
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -331,17 +332,17 @@ const SettingLabel = styled.label`
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #ECECEC;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 8px;
 `;
 
 const SettingInput = styled.input`
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #ECECEC;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.primary};
   font-size: 13px;
   outline: none;
   transition: border-color 0.15s ease;
@@ -349,16 +350,17 @@ const SettingInput = styled.input`
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.accent};
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: ${({ theme }) => theme.colors.background};
   }
 
   &::placeholder {
-    color: #8E8E8E;
+    color: ${({ theme }) => theme.colors.muted || theme.colors.secondary};
   }
 
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+    background-color: ${({ theme }) => theme.colors.surface};
   }
 `;
 
