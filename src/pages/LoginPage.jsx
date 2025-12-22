@@ -66,7 +66,7 @@ export const LoginPage = () => {
   return (
     <LoginContainer theme={theme}>
       <ThemeToggleWrapper>
-        <ToggleTheme />
+      <ToggleTheme />
       </ThemeToggleWrapper>
       <div
         style={{

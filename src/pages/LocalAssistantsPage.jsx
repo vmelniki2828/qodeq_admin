@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 import { Layout } from 'components/Layout';
-import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText } from 'react-icons/hi2';
+import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText, HiCheck } from 'react-icons/hi2';
 import { Notify, Confirm } from 'notiflix/build/notiflix-aio';
 
 const PageContainer = styled.div`
@@ -304,6 +304,36 @@ const ChunksContainer = styled.div`
   position: relative;
 `;
 
+const ChunkSaveButtonContainer = styled.div`
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const ChunkSaveButton = styled.button`
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.background};
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 const ChunkBlock = styled.div`
   padding: 16px;
   border-radius: 8px;
@@ -369,6 +399,222 @@ const ChunkText = styled.div`
   line-height: 1.5;
   white-space: pre-wrap;
   word-wrap: break-word;
+`;
+
+const ChunksListContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+  gap: 12px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 4px;
+
+    &:hover {
+      background: ${({ theme }) => theme.colors.secondary};
+    }
+  }
+`;
+
+const ModalChunksContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-height: 400px;
+`;
+
+const ModalChunkNavigationButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.1)'};
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ModalChunkWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+`;
+
+const ModalChunkPagination = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.secondary};
+  gap: 8px;
+`;
+
+const ChunkItem = styled.div`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 12px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const ChunkContent = styled.div`
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: ${({ theme }) =>
+    theme.colors.surface === '#F9FAFB' ? '#FAFBFC' : 'rgba(0, 0, 0, 0.02)'};
+`;
+
+const ChunkItemField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const ChunkFieldLabel = styled.label`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.secondary};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const ChunkFieldValue = styled.div`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.primary};
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+`;
+
+const ChunkTextArea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 4px;
+
+    &:hover {
+      background: ${({ theme }) => theme.colors.secondary};
+    }
+  }
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) =>
+      theme.colors.surface === '#F9FAFB'
+        ? 'rgba(0, 0, 0, 0.05)'
+        : 'rgba(255, 255, 255, 0.1)'};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
+`;
+
+const ChunkActiveCheckbox = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+`;
+
+const ChunkCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.primary};
+  user-select: none;
+  flex: 1;
+`;
+
+const ChunkCheckbox = styled.input`
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #10B981;
+  flex-shrink: 0;
+`;
+
+const ChunkActiveStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: ${({ $isActive, theme }) => ($isActive ? '#10B981' : theme.colors.secondary)};
+  font-size: 14px;
+`;
+
+const ActiveIcon = styled(HiCheck)`
+  width: 18px;
+  height: 18px;
+  color: #10B981;
 `;
 
 const InputContainer = styled.div`
@@ -1073,8 +1319,28 @@ export const LocalAssistantsPage = () => {
   const [isEditResizing, setIsEditResizing] = useState(false);
   const [messages, setMessages] = useState([]);
   const [showChunksForMessage, setShowChunksForMessage] = useState(null);
+  const [showModalChunksForMessage, setShowModalChunksForMessage] = useState(null);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
-  const [isPlaygroundChunksModalOpen, setIsPlaygroundChunksModalOpen] = useState(false);
+  const [modalChunkIndex, setModalChunkIndex] = useState(0);
+  const initialModalChunksData = [
+    {
+      id: 1,
+      text: 'Как подтвердить криптокошелек: На данный момент при пополнении счёта с помощью криптовалюты верификация',
+      is_active: true,
+    },
+    {
+      id: 2,
+      text: 'Как подтвердить Piastrix:- Необходимо перейти в свой профиль, затем в раздел "Верификация"- Далее в поле «Оплата»',
+      is_active: true,
+    },
+    {
+      id: 3,
+      text: 'Как подтвердить карту: Перейдите в раздел "Профиль", затем "Верификация" и загрузите фотографии в пункт "Оплата"',
+      is_active: true,
+    },
+  ];
+  const [modalChunksData, setModalChunksData] = useState(initialModalChunksData);
+  const [savedModalChunksData, setSavedModalChunksData] = useState(initialModalChunksData);
   const [inputMessage, setInputMessage] = useState('');
   const containerRef = useRef(null);
   const editContainerRef = useRef(null);
@@ -1391,8 +1657,48 @@ export const LocalAssistantsPage = () => {
     setCurrentChunkIndex((prev) => (prev - 1 + chunksData.length) % chunksData.length);
   };
 
-  const handleOpenChunksModal = () => {
-    setIsPlaygroundChunksModalOpen(true);
+  const handleOpenChunksModal = (messageId) => {
+    setShowModalChunksForMessage((prev) => (prev === messageId ? null : messageId));
+    if (showModalChunksForMessage !== messageId) {
+      setModalChunkIndex(0);
+    }
+  };
+
+  const handleNextModalChunk = () => {
+    setModalChunkIndex((prev) => (prev + 1) % modalChunksData.length);
+  };
+
+  const handlePrevModalChunk = () => {
+    setModalChunkIndex((prev) => (prev - 1 + modalChunksData.length) % modalChunksData.length);
+  };
+
+  const handleModalChunkTextChange = (chunkId, newText) => {
+    setModalChunksData((prev) =>
+      prev.map((chunk) => (chunk.id === chunkId ? { ...chunk, text: newText } : chunk))
+    );
+  };
+
+  const handleModalChunkActiveChange = (chunkId, isActive) => {
+    setModalChunksData((prev) =>
+      prev.map((chunk) => (chunk.id === chunkId ? { ...chunk, is_active: isActive } : chunk))
+    );
+  };
+
+  const hasModalChunksChanges = () => {
+    if (modalChunksData.length !== savedModalChunksData.length) return true;
+    return modalChunksData.some((chunk, index) => {
+      const savedChunk = savedModalChunksData[index];
+      return (
+        chunk.id !== savedChunk.id ||
+        chunk.text !== savedChunk.text ||
+        chunk.is_active !== savedChunk.is_active
+      );
+    });
+  };
+
+  const handleSaveModalChunks = () => {
+    setSavedModalChunksData([...modalChunksData]);
+    Notify.success('Чанки успешно сохранены');
   };
 
   const chunksData = [
@@ -2493,7 +2799,7 @@ export const LocalAssistantsPage = () => {
                                    <HiDocumentText size={14} />
                                    Knowledgebase
                                  </ChunksButton>
-                                 <ChunksButton theme={theme} onClick={handleOpenChunksModal}>
+                                 <ChunksButton theme={theme} onClick={() => handleOpenChunksModal(message.id)}>
                                    <HiPencil size={14} />
                                    Chunks
                                  </ChunksButton>
@@ -2528,6 +2834,78 @@ export const LocalAssistantsPage = () => {
                                  <HiChevronRight size={18} />
                                </ChunkNavigationButton>
                              </ChunksContainer>
+                           )}
+                           {message.hasChunksButton && showModalChunksForMessage === message.id && (
+                             <>
+                               <ChunksContainer theme={theme}>
+                                 <ChunkNavigationButton
+                                   theme={theme}
+                                   onClick={handlePrevModalChunk}
+                                   disabled={modalChunksData.length <= 1}
+                                 >
+                                   <HiChevronLeft size={18} />
+                                 </ChunkNavigationButton>
+                                 <ChunkBlock theme={theme}>
+                                   <ChunkIndexIndicator theme={theme}>
+                                     {modalChunkIndex + 1}/{modalChunksData.length}
+                                   </ChunkIndexIndicator>
+                                   {modalChunksData[modalChunkIndex] && (
+                                     <>
+                                       <ChunkItemField>
+                                         <ChunkFieldLabel theme={theme}>text</ChunkFieldLabel>
+                                         <ChunkTextArea
+                                           theme={theme}
+                                           value={modalChunksData[modalChunkIndex].text}
+                                           onChange={(e) =>
+                                             handleModalChunkTextChange(
+                                               modalChunksData[modalChunkIndex].id,
+                                               e.target.value
+                                             )
+                                           }
+                                           placeholder="Введите текст чанка..."
+                                         />
+                                       </ChunkItemField>
+                                       <ChunkItemField>
+                                         <ChunkActiveCheckbox theme={theme}>
+                                           <ChunkCheckboxLabel theme={theme}>
+                                             <ChunkCheckbox
+                                               type="checkbox"
+                                               checked={modalChunksData[modalChunkIndex].is_active}
+                                               onChange={(e) =>
+                                                 handleModalChunkActiveChange(
+                                                   modalChunksData[modalChunkIndex].id,
+                                                   e.target.checked
+                                                 )
+                                               }
+                                             />
+                                             <ChunkActiveStatus
+                                               $isActive={modalChunksData[modalChunkIndex].is_active}
+                                               theme={theme}
+                                             >
+                                               {modalChunksData[modalChunkIndex].is_active
+                                                 ? 'Active'
+                                                 : 'Inactive'}
+                                             </ChunkActiveStatus>
+                                           </ChunkCheckboxLabel>
+                                           {hasModalChunksChanges() && (
+                                             <ChunkSaveButton theme={theme} onClick={handleSaveModalChunks}>
+                                               Сохранить
+                                             </ChunkSaveButton>
+                                           )}
+                                         </ChunkActiveCheckbox>
+                                       </ChunkItemField>
+                                     </>
+                                   )}
+                                 </ChunkBlock>
+                                 <ChunkNavigationButton
+                                   theme={theme}
+                                   onClick={handleNextModalChunk}
+                                   disabled={modalChunksData.length <= 1}
+                                 >
+                                   <HiChevronRight size={18} />
+                                 </ChunkNavigationButton>
+                               </ChunksContainer>
+                             </>
                            )}
                            <MessageText theme={theme}>
                              {message.text}
@@ -2730,21 +3108,6 @@ export const LocalAssistantsPage = () => {
                 onChange={(e) => setToolDefinition(e.target.value)}
                 placeholder="Введите tool definition..."
               />
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
-      )}
-      {isPlaygroundChunksModalOpen && (
-        <ModalOverlay onClick={() => setIsPlaygroundChunksModalOpen(false)}>
-          <ModalContent theme={theme} onClick={(e) => e.stopPropagation()}>
-            <ModalHeader theme={theme}>
-              <ModalTitle theme={theme}>Chunks</ModalTitle>
-              <CloseButton theme={theme} onClick={() => setIsPlaygroundChunksModalOpen(false)}>
-                ×
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody theme={theme}>
-              {/* Здесь будет содержимое модального окна */}
             </ModalBody>
           </ModalContent>
         </ModalOverlay>
