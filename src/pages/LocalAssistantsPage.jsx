@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 import { Layout } from 'components/Layout';
-import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText, HiCheck } from 'react-icons/hi2';
+import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText } from 'react-icons/hi2';
 import { Notify, Confirm } from 'notiflix/build/notiflix-aio';
 
 const PageContainer = styled.div`
@@ -304,12 +304,6 @@ const ChunksContainer = styled.div`
   position: relative;
 `;
 
-const ChunkSaveButtonContainer = styled.div`
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
-`;
-
 const ChunkSaveButton = styled.button`
   padding: 4px 8px;
   border-radius: 4px;
@@ -401,107 +395,6 @@ const ChunkText = styled.div`
   word-wrap: break-word;
 `;
 
-const ChunksListContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  max-height: 600px;
-  overflow-y: auto;
-  padding-right: 4px;
-  gap: 12px;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.colors.background};
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.colors.border};
-    border-radius: 4px;
-
-    &:hover {
-      background: ${({ theme }) => theme.colors.secondary};
-    }
-  }
-`;
-
-const ModalChunksContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-  min-height: 400px;
-`;
-
-const ModalChunkNavigationButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.primary};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: ${({ theme }) =>
-      theme.colors.primary === '#0D0D0D' ? '#f0f0f0' : 'rgba(255,255,255,0.1)'};
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const ModalChunkWrapper = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-`;
-
-const ModalChunkPagination = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 16px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.secondary};
-  gap: 8px;
-`;
-
-const ChunkItem = styled.div`
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 12px;
-  background-color: ${({ theme }) => theme.colors.surface};
-  overflow: hidden;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const ChunkContent = styled.div`
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: ${({ theme }) =>
-    theme.colors.surface === '#F9FAFB' ? '#FAFBFC' : 'rgba(0, 0, 0, 0.02)'};
-`;
-
 const ChunkItemField = styled.div`
   display: flex;
   flex-direction: column;
@@ -514,14 +407,6 @@ const ChunkFieldLabel = styled.label`
   color: ${({ theme }) => theme.colors.secondary};
   text-transform: uppercase;
   letter-spacing: 0.5px;
-`;
-
-const ChunkFieldValue = styled.div`
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.primary};
-  line-height: 1.5;
-  word-wrap: break-word;
-  white-space: pre-wrap;
 `;
 
 const ChunkTextArea = styled.textarea`
@@ -609,12 +494,6 @@ const ChunkActiveStatus = styled.div`
   gap: 8px;
   color: ${({ $isActive, theme }) => ($isActive ? '#10B981' : theme.colors.secondary)};
   font-size: 14px;
-`;
-
-const ActiveIcon = styled(HiCheck)`
-  width: 18px;
-  height: 18px;
-  color: #10B981;
 `;
 
 const InputContainer = styled.div`
