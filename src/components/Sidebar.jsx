@@ -55,6 +55,7 @@ export const Sidebar = () => {
     { label: 'Tools Workflow', path: '/tools-workflow' },
     { label: 'Local Assistants', path: '/local-assistants' },
     { label: 'Text Chunks', path: '/text-chunks' },
+    { label: 'Integrations', path: '/integrations' },
   ];
 
   const isActive = (path) => {

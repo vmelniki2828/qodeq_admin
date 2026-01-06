@@ -991,7 +991,7 @@ export const ToolsWorkflowPage = () => {
   return (
     <Layout>
       <ThemeProvider theme={theme}>
-        <PageContent>
+      <PageContent>
           <HeaderSection data-header>
             <Title>Tools Workflow</Title>
             <SelectContainer>
@@ -1270,7 +1270,7 @@ export const ToolsWorkflowPage = () => {
               </EmptyState>
             </CanvasContainer>
           )}
-        </PageContent>
+      </PageContent>
       </ThemeProvider>
     </Layout>
   );

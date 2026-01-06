@@ -5,6 +5,136 @@ import { Layout } from 'components/Layout';
 import { HiPencil, HiChevronLeft, HiChevronRight, HiChevronDoubleLeft, HiChevronDoubleRight, HiTrash, HiDocumentText } from 'react-icons/hi2';
 import { Notify, Confirm } from 'notiflix/build/notiflix-aio';
 
+// Вспомогательные функции для работы с куками
+const getCookie = (name) => {
+  const nameEQ = `${name}=`;
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
+
+const setCookie = (name, value, days = 30) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;domain=.test.qodeq.net`;
+};
+
+// Функция для обновления токена
+const refreshToken = async () => {
+  const refreshTokenValue = getCookie('user_refresh_token');
+  
+  if (!refreshTokenValue) {
+    throw new Error('Refresh token не найден');
+  }
+
+  const response = await fetch('https://auth.test.qodeq.net/api/v1/refresh', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      refresh_token: refreshTokenValue,
+    }),
+    credentials: 'include'
+  });
+
+  if (!response.ok) {
+    throw new Error('Ошибка при обновлении токена');
+  }
+
+  const data = await response.json();
+  const accessToken = data.access_token || data.accessToken || data.token || data.data?.access_token;
+  const newRefreshToken = data.refresh_token || data.refreshToken || data.data?.refresh_token;
+
+  if (accessToken) {
+    setCookie('user_access_token', accessToken);
+  }
+
+  if (newRefreshToken) {
+    setCookie('user_refresh_token', newRefreshToken);
+  }
+
+  return accessToken;
+};
+
+// Функция для выполнения запросов с автоматическим обновлением токена
+const fetchWithRefresh = async (url, options = {}) => {
+  const accessToken = getCookie('user_access_token');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
+  let response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: 'include'
+  });
+
+  // Если получили 401, проверяем, это ли "Expired token"
+  if (response.status === 401) {
+    // Клонируем response, чтобы можно было прочитать его несколько раз
+    const responseClone = response.clone();
+    let errorData = {};
+    
+    try {
+      errorData = await responseClone.json();
+    } catch (e) {
+      // Если не удалось распарсить JSON, пробуем прочитать как текст
+      const text = await responseClone.text();
+      try {
+        errorData = JSON.parse(text);
+      } catch (e2) {
+        console.error('Не удалось распарсить ответ ошибки:', text);
+      }
+    }
+    
+    console.log('401 ошибка, полный ответ:', errorData);
+    console.log('401 ошибка, detail:', errorData.detail);
+    
+    // Проверяем разные варианты сообщения об истекшем токене
+    const isExpiredToken = 
+      errorData.detail === 'Expired token' || 
+      errorData.detail === 'Expired token.' ||
+      errorData.detail?.toLowerCase().includes('expired') ||
+      errorData.message === 'Expired token' ||
+      errorData.message?.toLowerCase().includes('expired');
+    
+    if (isExpiredToken) {
+      console.log('Токен истек, обновляем...');
+      try {
+        // Обновляем токен
+        const newAccessToken = await refreshToken();
+        console.log('Токен обновлен, повторяем запрос...');
+        
+        // Повторяем запрос с новым токеном
+        headers['Authorization'] = `Bearer ${newAccessToken}`;
+        response = await fetch(url, {
+          ...options,
+          headers,
+          credentials: 'include'
+        });
+        console.log('Повторный запрос выполнен, статус:', response.status);
+      } catch (refreshError) {
+        console.error('Ошибка при обновлении токена:', refreshError);
+        Notify.failure('Сессия истекла. Пожалуйста, войдите в систему заново.');
+        throw refreshError;
+      }
+    }
+  }
+
+  return response;
+};
+
 const PageContainer = styled.div`
   display: flex;
   height: 100%;
@@ -1058,18 +1188,6 @@ const AgentId = styled.div`
   font-weight: 500;
 `;
 
-// Моковые данные агентов
-const mockAgents = [
-  { id: 1, description: 'Cat', project: 'Project Alpha' },
-  { id: 2, description: 'Gama', project: 'Project Beta' },
-  { id: 3, description: 'Daddy', project: 'Project Gamma' },
-  { id: 5, description: 'Kent', project: 'Project Alpha' },
-  { id: 6, description: 'R7', project: 'Project Beta' },
-  { id: 7, description: 'Kometa', project: 'Project Delta' },
-  { id: 8, description: 'Arkada', project: 'Project Gamma' },
-  { id: 9, description: 'Motor', project: 'Project Alpha' },
-];
-
 // Список инструментов
 const toolsList = [
   { name: 'deposit_ticket', id: 6 },
@@ -1099,7 +1217,8 @@ const chunksList = [
 export const LocalAssistantsPage = () => {
   const { theme } = useTheme();
   const [leftWidth, setLeftWidth] = useState(400);
-  const [agents, setAgents] = useState(mockAgents);
+  const [agents, setAgents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [selectedTools, setSelectedTools] = useState(new Set());
   const [isResizing, setIsResizing] = useState(false);
@@ -1117,25 +1236,163 @@ export const LocalAssistantsPage = () => {
   const [description, setDescription] = useState('');
   const [attributesForAi, setAttributesForAi] = useState('');
 
-  // Обновление Description при выборе агента
+  // Загрузка ассистентов с API
   useEffect(() => {
-    if (selectedAgentId) {
-      const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
-      if (selectedAgent && selectedAgent.description) {
-        setDescription(selectedAgent.description);
+    const fetchAssistants = async () => {
+      try {
+        setIsLoading(true);
+        
+        const response = await fetchWithRefresh('https://chat.test.qodeq.net/api/v1/assistants/', {
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            Notify.failure('Требуется авторизация. Пожалуйста, войдите в систему.');
+            return;
+          }
+          throw new Error('Ошибка при загрузке ассистентов');
+        }
+        
+        const data = await response.json();
+        // Обработка разных форматов ответа API (массив или объект с results)
+        const assistants = Array.isArray(data) ? data : (data.results || data.data || []);
+        setAgents(assistants);
+      } catch (error) {
+        console.error('Ошибка при загрузке ассистентов:', error);
+        Notify.failure('Не удалось загрузить ассистентов');
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [selectedAgentId, agents]);
-
-  const handleCreateNewAgent = () => {
-    const newId = Math.max(...agents.map((a) => a.id), 0) + 1;
-    const newAgent = {
-      id: newId,
-      description: `New Agent ${newId}`,
-      project: 'New Project',
     };
-    setAgents((prev) => [...prev, newAgent]);
-    setSelectedAgentId(newId);
+
+    fetchAssistants();
+  }, []);
+
+  // Загрузка детальной информации об ассистенте при выборе
+  useEffect(() => {
+    const fetchAssistantDetails = async () => {
+      if (!selectedAgentId) return;
+
+      try {
+        const response = await fetchWithRefresh(`https://chat.test.qodeq.net/api/v1/assistants/${selectedAgentId}`, {
+          method: 'GET'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            Notify.failure('Требуется авторизация. Пожалуйста, войдите в систему.');
+            return;
+          }
+          throw new Error('Ошибка при загрузке данных ассистента');
+        }
+        
+        const data = await response.json();
+        
+        // Обновляем данные ассистента
+        if (data.description !== undefined) {
+          setDescription(data.description);
+      }
+        
+        if (data.chunks_limit !== undefined) {
+          setChunksLimit(data.chunks_limit);
+        }
+        
+        if (data.chunks_score !== undefined) {
+          setChunksScore(data.chunks_score);
+        }
+        
+        if (data.instruction !== undefined) {
+          setInstruction(data.instruction);
+        }
+        
+        if (data.max_tokens !== undefined) {
+          setMaxTokens(data.max_tokens);
+        }
+        
+        if (data.temperature !== undefined) {
+          setTemperature(data.temperature);
+        }
+        
+        if (data.top_p !== undefined) {
+          setTopP(data.top_p);
+        }
+        
+        if (data.tool_calling !== undefined) {
+          setToolCalling(data.tool_calling);
+        }
+        
+        if (data.tool_definition !== undefined) {
+          setToolDefinition(data.tool_definition);
+        }
+        
+        // Обновляем другие поля, если они есть в ответе
+        if (data.attributes_for_ai !== undefined) {
+          setAttributesForAi(data.attributes_for_ai);
+        }
+        if (data.model !== undefined) {
+          setSelectedModel(data.model);
+        }
+        if (data.localization !== undefined) {
+          setSelectedLocalization(data.localization);
+        }
+        
+      } catch (error) {
+        console.error('Ошибка при загрузке данных ассистента:', error);
+        Notify.failure('Не удалось загрузить данные ассистента');
+      }
+    };
+
+    fetchAssistantDetails();
+  }, [selectedAgentId]);
+
+  const handleCreateNewAgent = async () => {
+    try {
+      // Подготавливаем данные для создания нового ассистента
+      const newAssistantData = {
+        type: 'local_assistant',
+        model_id: 0,
+        description: 'New Assistant',
+        attributes_for_ai: [],
+        instruction: '',
+        chunks_score: 0,
+        chunks_limit: 1, // Должно быть больше 0
+        temperature: 0,
+        top_p: 0,
+        max_tokens: 1, // Должно быть больше 0
+        tool_calling: 'json', // Должно быть 'json' или 'code'
+        tool_definition: 'json' // Должно быть 'json' или 'code'
+      };
+
+      const response = await fetchWithRefresh('https://chat.test.qodeq.net/api/v1/assistants/', {
+        method: 'POST',
+        body: JSON.stringify(newAssistantData)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          Notify.failure('Требуется авторизация. Пожалуйста, войдите в систему.');
+          return;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Ошибка при создании ассистента');
+      }
+
+      const data = await response.json();
+      
+      // Добавляем нового ассистента в список
+      setAgents((prev) => [...prev, data]);
+      
+      // Выбираем созданного ассистента
+      if (data.id) {
+        setSelectedAgentId(data.id);
+      }
+      
+      Notify.success('Ассистент успешно создан');
+    } catch (error) {
+      console.error('Ошибка при создании ассистента:', error);
+      Notify.failure(error.message || 'Не удалось создать ассистента');
+    }
   };
 
   const handleDeleteAgent = (agentId, e) => {
@@ -1488,9 +1745,55 @@ export const LocalAssistantsPage = () => {
     setChunksLimit((prev) => Math.max(0, prev - 10));
   };
 
-  const handleSave = () => {
-    // Здесь будет логика сохранения данных
-    console.log('Сохранение изменений...');
+  const handleSave = async () => {
+    if (!selectedAgentId) {
+      Notify.failure('Ассистент не выбран');
+      return;
+    }
+
+    try {
+      // Собираем все данные для отправки
+      const updateData = {
+        description: description || null,
+        chunks_limit: chunksLimit || null,
+        chunks_score: chunksScore || null,
+        instruction: instruction || null,
+        max_tokens: maxTokens || null,
+        temperature: temperature || null,
+        top_p: topP || null,
+        tool_calling: toolCalling || null,
+        tool_definition: toolDefinition || null,
+        attributes_for_ai: attributesForAi || null,
+        model: selectedModel || null,
+        localization: selectedLocalization || null,
+      };
+
+      // Удаляем null значения из объекта
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === null || updateData[key] === '') {
+          delete updateData[key];
+        }
+      });
+
+      const response = await fetchWithRefresh(`https://chat.test.qodeq.net/api/v1/assistants/${selectedAgentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          Notify.failure('Требуется авторизация. Пожалуйста, войдите в систему.');
+          return;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Ошибка при сохранении изменений');
+      }
+
+      Notify.success('Изменения успешно сохранены');
+    } catch (error) {
+      console.error('Ошибка при сохранении изменений:', error);
+      Notify.failure(error.message || 'Не удалось сохранить изменения');
+    }
   };
 
   const handleEditToggle = () => {
@@ -1618,7 +1921,24 @@ export const LocalAssistantsPage = () => {
             </ButtonsGroup>
           </HeaderSection>
           <AgentsList>
-            {agents.map((agent) => (
+            {isLoading ? (
+              <div style={{ 
+                padding: '20px', 
+                textAlign: 'center', 
+                color: theme.colors.secondary 
+              }}>
+                Загрузка ассистентов...
+              </div>
+            ) : agents.length === 0 ? (
+              <div style={{ 
+                padding: '20px', 
+                textAlign: 'center', 
+                color: theme.colors.secondary 
+              }}>
+                Ассистенты не найдены
+              </div>
+            ) : (
+              agents.map((agent) => (
               <AgentBlock
                 key={agent.id}
                 theme={theme}
@@ -1626,7 +1946,7 @@ export const LocalAssistantsPage = () => {
                 onClick={() => setSelectedAgentId(agent.id)}
               >
                 <AgentInfo>
-                  <AgentDescription theme={theme}>{agent.description}</AgentDescription>
+                    <AgentDescription theme={theme}>{agent.description || agent.name || 'Без названия'}</AgentDescription>
                   <AgentId theme={theme}>id: {agent.id}</AgentId>
                 </AgentInfo>
                 <DeleteButton
@@ -1637,7 +1957,8 @@ export const LocalAssistantsPage = () => {
                   <HiTrash size={16} />
                 </DeleteButton>
               </AgentBlock>
-            ))}
+              ))
+            )}
           </AgentsList>
         </LeftPanel>
 

@@ -5,6 +5,13 @@ import { useTheme } from '../contexts/ThemeContext';
 import { ToggleTheme } from 'components/ToggleTheme';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
+// Вспомогательные функции для работы с куками
+const setCookie = (name, value, days = 30) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;domain=.test.qodeq.net`;
+};
+
 const LoginContainer = styled.div`
   min-height: 100vh;
   display: flex;
@@ -24,43 +31,69 @@ const ThemeToggleWrapper = styled.div`
 `;
 
 export const LoginPage = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { theme } = useTheme();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Проверка заполненности полей
-    if (!username || !password) {
+    if (!email || !password) {
       Notify.failure('Пожалуйста, заполните все поля');
       return;
     }
 
-    // Список валидных учетных данных
-    const validCredentials = [
-      { username: 'f5146e1a-3c5a-4d35-89a1-287e0e4383f3', password: 'rADtL4cspJ6g82372_VLfDGtwTgj9g' }, // cbc
-      { username: 'f343517a-3cba-474d-8785-e780676d744a', password: 'rADtL4cspJ6g82372_VLfDGtwTgj9g' }, // trk
-      { username: '72b9ca9c-3881-4120-867a-39a29c2d8cac', password: 'rADtL4cspJ6g82372_VLfDGtwTgj9g' }, // cis
-      { username: '4bc85745-73f2-4899-b2b4-544b8f7cfa09', password: 'rADtL4cspJ6g82372_VLfDGtwTgj9g' }, // test
-    ];
+    setIsLoading(true);
 
-    // Проверка учетных данных
-    const isValid = validCredentials.some(
-      (cred) => cred.username === username && cred.password === password
-    );
+    try {
+      const response = await fetch('https://auth.test.qodeq.net/api/v1/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          integration: null,
+          password: password,
+        }),
+      });
 
-    if (!isValid) {
-      Notify.failure('Неверный username или пароль');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        Notify.failure(errorData.message || 'Неверный email или пароль');
+        setIsLoading(false);
       return;
     }
 
+      const data = await response.json();
+      
+      // Сохранение токенов в куки
+      // Обработка разных форматов ответа API
+      const accessToken = data.access_token || data.accessToken || data.token || data.data?.access_token;
+      const refreshToken = data.refresh_token || data.refreshToken || data.data?.refresh_token;
+      
+      if (accessToken) {
+        setCookie('user_access_token', accessToken);
+      }
+      
+      if (refreshToken) {
+        setCookie('user_refresh_token', refreshToken);
+      }
+
     // Успешная авторизация
     Notify.success('Вход выполнен успешно!');
+      setIsLoading(false);
     setTimeout(() => {
       navigate('/tools-workflow');
     }, 500);
+    } catch (error) {
+      console.error('Ошибка при авторизации:', error);
+      Notify.failure('Произошла ошибка при подключении к серверу');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,7 +125,7 @@ export const LoginPage = () => {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
             <label
-              htmlFor="username"
+              htmlFor="email"
               style={{
                 display: 'block',
                 marginBottom: '8px',
@@ -101,13 +134,13 @@ export const LoginPage = () => {
                 fontWeight: '500',
               }}
             >
-              Username
+              Email
             </label>
             <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -119,7 +152,8 @@ export const LoginPage = () => {
                 backgroundColor: theme.colors.background,
                 color: theme.colors.primary,
               }}
-              placeholder="Введите username"
+              placeholder="Введите email"
+              disabled={isLoading}
             />
           </div>
 
@@ -153,27 +187,38 @@ export const LoginPage = () => {
                 color: theme.colors.primary,
               }}
               placeholder="Введите пароль"
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
+            disabled={isLoading}
             style={{
               width: '100%',
               padding: '12px',
-              backgroundColor: theme.colors.primary,
+              backgroundColor: isLoading ? theme.colors.secondary : theme.colors.primary,
               color: theme.colors.background,
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               transition: 'background-color 0.3s, opacity 0.3s',
+              opacity: isLoading ? 0.6 : 1,
             }}
-            onMouseEnter={(e) => (e.target.style.opacity = '0.8')}
-            onMouseLeave={(e) => (e.target.style.opacity = '1')}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.target.style.opacity = '0.8';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.target.style.opacity = '1';
+              }
+            }}
           >
-            Войти
+            {isLoading ? 'Вход...' : 'Войти'}
           </button>
         </form>
       </div>

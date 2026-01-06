@@ -1,0 +1,5 @@
+dev.test.qodeq.net {
+    reverse_proxy 127.0.0.1:3000
+    tls ./dev.test.qodeq.net.pem ./dev.test.qodeq.net-key.pem
+}
+
