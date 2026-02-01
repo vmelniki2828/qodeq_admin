@@ -22,3 +22,7 @@ Write-Host "После установки запустите Caddy:" -Foreground
 Write-Host "  cd d:\GoIT\qodeq_admin" -ForegroundColor Cyan
 Write-Host "  caddy run" -ForegroundColor Cyan
 
+
+
+
+

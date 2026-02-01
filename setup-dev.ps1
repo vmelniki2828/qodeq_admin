@@ -90,3 +90,7 @@ Write-Host "2. В отдельном терминале запустите Caddy
 Write-Host "3. Откройте в браузере: https://dev.test.qodeq.net/" -ForegroundColor Cyan
 Write-Host ""
 
+
+
+
+

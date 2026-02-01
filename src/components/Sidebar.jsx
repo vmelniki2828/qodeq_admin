@@ -56,6 +56,7 @@ export const Sidebar = () => {
     { label: 'Local Assistants', path: '/local-assistants' },
     { label: 'Text Chunks', path: '/text-chunks' },
     { label: 'Integrations', path: '/integrations' },
+    { label: 'Statistics', path: '/statistics' },
   ];
 
   const isActive = (path) => {

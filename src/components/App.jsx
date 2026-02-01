@@ -5,6 +5,7 @@ import { ToolsWorkflowPage } from 'pages/ToolsWorkflowPage';
 import { LocalAssistantsPage } from 'pages/LocalAssistantsPage';
 import { TextChunksPage } from 'pages/TextChunksPage';
 import { IntegrationsPage } from 'pages/IntegrationsPage';
+import { StatisticsPage } from 'pages/StatisticsPage';
 
 export const App = () => {
   return (
@@ -16,6 +17,7 @@ export const App = () => {
           <Route path="/local-assistants" element={<LocalAssistantsPage />} />
           <Route path="/text-chunks" element={<TextChunksPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

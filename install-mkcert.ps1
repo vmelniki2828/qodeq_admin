@@ -22,3 +22,7 @@ Write-Host "После установки выполните:" -ForegroundColor 
 Write-Host "  mkcert -install" -ForegroundColor Cyan
 Write-Host "  mkcert dev.test.qodeq.net" -ForegroundColor Cyan
 
+
+
+
+

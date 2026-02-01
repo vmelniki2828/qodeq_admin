@@ -78,3 +78,7 @@ cd d:\GoIT\qodeq_admin
 powershell -ExecutionPolicy Bypass -File .\setup-dev.ps1
 ```
 
+
+
+
+

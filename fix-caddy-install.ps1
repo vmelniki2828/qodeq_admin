@@ -28,3 +28,7 @@ if ($caddyInstalled) {
     Write-Host "См. инструкции в INSTALL-CADDY.md" -ForegroundColor Yellow
 }
 
+
+
+
+
